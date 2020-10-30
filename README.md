@@ -6,4 +6,3 @@ Edward Krueger  8:43 PM
 :parrot:
 1
 
-![alt text](sqlalchemy_no_automap.png)
