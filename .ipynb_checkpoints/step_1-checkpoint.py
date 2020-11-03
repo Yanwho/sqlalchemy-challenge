@@ -32,18 +32,11 @@ base.classes.keys()
 # Save references to each table
 measurement = base.classes.measurement
 station = base.classes.station
+session = Session(bind=engine)
 
 # Precipitation Analysis
 # Design a query to retrieve the last 12 months of precipitation data.
-another_last_date = session.query(func.max(measurement.date)).first()[0]
-pprint(another_last_date)
-import datetime
-date_time_obj = datetime.datetime.strptime(another_last_date, '%Y-%m-%d')
-## pprint(date_time_obj)
-one_year_ago2 = date_time_obj - timedelta(days=365)
-## pprint(one_year_ago2)
-results = session.query(measurement.date, measurement.prcp).filter(measurement.date>=one_year_ago2).all()
-print(results)
+
 # Select only the date and prcp values.
 
 # Load the query results into a Pandas DataFrame and set the index to the date column.
