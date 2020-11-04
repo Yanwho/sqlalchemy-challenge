@@ -4,9 +4,9 @@
 # In[1]:
 
 
-#get_ipython().run_line_magic('matplotlib', 'inline')
-from matplotlib import style
-style.use('fivethirtyeight')
+# get_ipython().run_line_magic('matplotlib', 'inline')
+# from matplotlib import style
+# style.use('fivethirtyeight')
 import matplotlib.pyplot as plt
 
 
@@ -91,10 +91,10 @@ FROM measurement
 """
 print(pd.read_sql(cmd, con=engine))
 
-# SELECT DATEADD(month, -2, '2017/08/25') AS DateAdd;
+
 # Design a query to retrieve the last 12 months of precipitation data and plot the results
 
-# result = session.query(func.strftime("%Y-%m-%d",measurement.date).all()
+
 # # Calculate the date 1 year ago from the last data point in the database
 
 # # Perform a query to retrieve the data and precipitation scores
@@ -106,7 +106,7 @@ print(pd.read_sql(cmd, con=engine))
 # # Use Pandas Plotting with Matplotlib to plot the data
 
 
-# In[29]:
+# In[11]:
 
 
 last_date = session.query(func.max(measurement.date)).first()[0]
@@ -139,21 +139,22 @@ type(date_time_obj)
 type(dt.timedelta(days=365))
 
 
-# In[28]:
+# In[16]:
 
 
+# # Calculate the date 1 year ago from the last data point in the database
 one_year_ago = date_time_obj - timedelta(days=365)
 print("The last year of data collection began: " + str(one_year_ago))
 
 
-# In[31]:
+# In[17]:
 
 
 one_year_ago_query = session.query(measurement).filter(measurement.date >= one_year_ago,  measurement.date <= last_date)
 one_year_ago_query
 
 
-# In[42]:
+# In[18]:
 
 
 last_year_df = pd.read_sql(one_year_ago_query.statement, one_year_ago_query.session.bind)
@@ -161,15 +162,36 @@ print("This dataframe includes the last year of data via multiple session querie
 last_year_df
 
 
-# In[41]:
+# In[19]:
 
 
-prcp_data_df = pd.read_sql("SELECT * FROM measurement WHERE date > '2016-08-23'", con=engine)
+# # Perform a query to retrieve the data and precipitation scores
+# # Save the query results as a Pandas DataFrame and set the index to the date column
+# # Sort the dataframe by date
+prcp_data_df = pd.read_sql("SELECT date, prcp FROM measurement WHERE date > '2016-08-23'", con=engine)
 print("This dataframe includes the last year of data from via single line query: ")
 prcp_data_df
 
 
-# In[40]:
+# ## Use Pandas Plotting with Matplotlib to plot the data
+
+# In[47]:
+
+
+
+prcp_data_df.plot(x="date", 
+                  y="prcp",
+                  rot=90, 
+                  figsize=(12,6), 
+                  title = ("Precipitation for last 12 months"),
+                  xlabel=("Date"),
+                  ylabel = ("Precipitation - inches"),
+                 fontsize = (12))
+
+plt.tight_layout()
+
+
+# In[46]:
 
 
 # Use Pandas to calcualte the summary statistics for the precipitation data
@@ -178,7 +200,7 @@ print("The summary of precip data from the last year is: ")
 prcp_summary
 
 
-# In[21]:
+# In[22]:
 
 
 # Design a query to show how many stations are available in this dataset?
@@ -186,7 +208,7 @@ station_count = session.query(station).count()
 station_count
 
 
-# In[44]:
+# In[23]:
 
 
 # What are the most active stations? (i.e. what stations have the most rows)?
@@ -196,21 +218,21 @@ print("This is the activity count: ")
 pprint(activity_count)
 
 
-# In[23]:
+# In[24]:
 
 
 activity_count_2 = session.query(measurement.id, measurement.station, measurement.date, measurement.prcp, measurement.tobs)
 print(activity_count_2)
 
 
-# In[24]:
+# In[25]:
 
 
 # Using the station id from the previous query, calculate the lowest temperature recorded, 
 # highest temperature recorded, and average temperature of the most active station?
 
 
-# In[25]:
+# In[26]:
 
 
 # Choose the station with the highest number of temperature observations.
@@ -219,7 +241,7 @@ print(activity_count_2)
 
 # ## Bonus Challenge Assignment
 
-# In[26]:
+# In[27]:
 
 
 # This function called `calc_temps` will accept start date and end date in the format '%Y-%m-%d' 
