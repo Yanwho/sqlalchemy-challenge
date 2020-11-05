@@ -4,9 +4,9 @@
 # In[1]:
 
 
-# get_ipython().run_line_magic('matplotlib', 'inline')
-# from matplotlib import style
-# style.use('fivethirtyeight')
+# %matplotlib inline
+from matplotlib import style
+style.use('fivethirtyeight')
 import matplotlib.pyplot as plt
 
 
@@ -175,23 +175,18 @@ prcp_data_df
 
 # ## Use Pandas Plotting with Matplotlib to plot the data
 
-# In[47]:
+# In[20]:
 
 
-
-prcp_data_df.plot(x="date", 
-                  y="prcp",
-                  rot=90, 
-                  figsize=(12,6), 
-                  title = ("Precipitation for last 12 months"),
-                  xlabel=("Date"),
-                  ylabel = ("Precipitation - inches"),
-                 fontsize = (12))
-
+prcp_data_df.plot("date", "prcp", rot=90, figsize=(10,6), title="Precipitation for last 12 months")
+plt.xticks()
+plt.xlabel("Inches")
+plt.ylabel("Temp")
 plt.tight_layout()
+plt.savefig("images/12_mo_prcp.png")
 
 
-# In[46]:
+# In[21]:
 
 
 # Use Pandas to calcualte the summary statistics for the precipitation data
@@ -213,7 +208,7 @@ station_count
 
 # What are the most active stations? (i.e. what stations have the most rows)?
 # List the stations and the counts in descending order.
-activity_count = (session.query(measurement.id, measurement.station, measurement.date, measurement.prcp, measurement.tobs, func.count(measurement.date)).group_by(measurement.station).order_by(func.count(measurement.date).desc()).all())
+activity_count = (session.query(measurement.station, func.count(measurement.date)).group_by(measurement.station).order_by(func.count(measurement.date).desc()).all())
 print("This is the activity count: ")
 pprint(activity_count)
 
@@ -221,27 +216,59 @@ pprint(activity_count)
 # In[24]:
 
 
-activity_count_2 = session.query(measurement.id, measurement.station, measurement.date, measurement.prcp, measurement.tobs)
-print(activity_count_2)
+active_stations_df = pd.DataFrame(activity_count, columns=["Station", "Measurement Count"], )
+active_stations_df
 
 
 # In[25]:
 
 
-# Using the station id from the previous query, calculate the lowest temperature recorded, 
-# highest temperature recorded, and average temperature of the most active station?
+most_active = (session.query(measurement.station, func.count(measurement.date)).group_by(measurement.station).order_by(func.count(measurement.date).desc()).first())
+print(most_active)
 
 
 # In[26]:
 
 
+# Using the station id from the previous query, calculate the lowest temperature recorded, 
+# highest temperature recorded, and average temperature of the most active station?
+most_active = session.query(measurement.station, station.name, 
+                                     func.min(measurement.tobs),
+                                     func.max(measurement.tobs), 
+                                     func.avg(measurement.tobs)).filter(measurement.station == 'USC00519281')
+
+pd.DataFrame(most_active, columns=["Station", "Station Name", "min-temp", "max-temp", "avg-temp"])
+
+
+# In[ ]:
+
+
+
+
+
+# In[27]:
+
+
 # Choose the station with the highest number of temperature observations.
 # Query the last 12 months of temperature observation data for this station and plot the results as a histogram
+most_active_last12 = session.query(measurement.date, measurement.tobs).filter(measurement.station == 'USC00519281').filter(measurement.date >= one_year_ago,  measurement.date <= last_date)
+
+most_active_last12_df = pd.DataFrame(most_active_last12, columns=["date", "temp"])
+most_active_last12_df
+
+
+# In[28]:
+
+
+
+most_active_last12_df.plot.hist("tobs", bins=12)
+plt.title("12 month tobs for most active station")
+plt.savefig("images/12_mo_histogram.png")
 
 
 # ## Bonus Challenge Assignment
 
-# In[27]:
+# In[30]:
 
 
 # This function called `calc_temps` will accept start date and end date in the format '%Y-%m-%d' 
@@ -257,20 +284,22 @@ def calc_temps(start_date, end_date):
         TMIN, TAVE, and TMAX
     """
     
-    return session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).        filter(Measurement.date >= start_date).filter(Measurement.date <= end_date).all()
+    return session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).        filter(measurement.date >= start_date).filter(measurement.date <= end_date).all()
 
 # function usage example
 print(calc_temps('2012-02-28', '2012-03-05'))
 
 
-# In[ ]:
+# In[32]:
 
 
 # Use your previous function `calc_temps` to calculate the tmin, tavg, and tmax 
 # for your trip using the previous year's data for those same dates.
+trip_calc = calc_temps('2016-08-24', '2017-08-18')
+print(trip_calc)
 
 
-# In[ ]:
+# In[48]:
 
 
 # Plot the results from your previous query as a bar chart. 
@@ -279,14 +308,14 @@ print(calc_temps('2012-02-28', '2012-03-05'))
 # Use the peak-to-peak (tmax-tmin) value as the y error bar (yerr)
 
 
-# In[ ]:
+# In[49]:
 
 
 # Calculate the total amount of rainfall per weather station for your trip dates using the previous year's matching dates.
 # Sort this in descending order by precipitation amount and list the station, name, latitude, longitude, and elevation
 
 
-# In[ ]:
+# In[51]:
 
 
 # Create a query that will calculate the daily normals 
@@ -303,8 +332,8 @@ def daily_normals(date):
     
     """
     
-    sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
-    return session.query(*sel).filter(func.strftime("%m-%d", Measurement.date) == date).all()
+    sel = [func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)]
+    return session.query(*sel).filter(func.strftime("%m-%d", measurement.date) == date).all()
     
 daily_normals("01-01")
 
@@ -334,4 +363,10 @@ daily_normals("01-01")
 
 
 # Plot the daily normals as an area plot with `stacked=False`
+
+
+# In[ ]:
+
+
+
 
