@@ -374,9 +374,75 @@ import datetime
 import os
 app = Flask(__name__)
 
+# /
+# Home page.
+# List all routes that are available.
 @app.route("/")
 def main():
-	return "Thesea are the available routes"
+	return (
+        """These are the available routes.<br/>
+        /api/v1.0/precipitation<br/>
+        /api/v1.0/stations<br/>
+        /api/v1.0/tobs<br/>
+        /api/v1.0/start<br/>
+        /api/v1.0/start/end<br/>""")
+
+
+
+
+# /api/v1.0/precipitation
+@app.route("/api/v1.0/precipitation")
+def precipitation():
+	return "Convert the query results to a dictionary using date as the key and prcp as the value"
+# Convert the query results to a dictionary using date as the key and prcp as the value.
+# Return the JSON representation of your dictionary.
+
+# /api/v1.0/stations
+@app.route("/api/v1.0/stations")
+def stations():
+	return "These are the 9 stations"
+# Return a JSON list of stations from the dataset.
+
+
+# /api/v1.0/tobs
+@app.route("/api/v1.0/tobs")
+def tobs():
+	
+    # """These are the dates and temperature observations of the most active station for the last year of data
+    # JSON list of temperature observations (TOBS) for the previous year"""
+# most_active_last12_1 = 
+        most_active_last12 = session.query(measurement.date, measurement.tobs).filter(measurement.station == 'USC00519281').filter(measurement.date >= one_year_ago,  measurement.date <= last_date)
+        # most_active_last12_1_df = pd.DataFrame(most_active_last12, columns=["date", "temp"])
+        return (most_active_last12_1_df)
+    # )
+# Query the dates and temperature observations of the most active station for the last year of data.
+# Return a JSON list of temperature observations (TOBS) for the previous year.
+
+# /api/v1.0/<start> 
+@app.route("/api/v1.0/<start>")
+def start(start):
+	return (
+        """When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date<bd/>
+        Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.""")
+# When g    iven the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
+# Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
+
+# /api/v1.0/<start>/<end>
+@app.route("/api/v1.0/<start>/<end>")
+def start_end(start,end):
+	return (
+        """When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive<bd/>
+        Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.""")
+# Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
+# When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive.
+
+
+
+# Hints
+# You will need to join the station and measurement tables for some of the queries.
+
+# Use Flask jsonify to convert your API data into a valid JSON response object.
+
 
 if __name__ == "__main__":
 	app.run(debug=True)
