@@ -38,7 +38,7 @@ from sqlalchemy.types import Date
 # In[5]:
 
 
-engine = create_engine("sqlite:///Resources/hawaii.sqlite")
+engine = create_engine("sqlite:///Resources/hawaii.sqlite",connect_args={"check_same_thread": False})
 
 
 # In[6]:
@@ -64,7 +64,7 @@ base.classes.keys()
 # Save references to each table
 measurement = base.classes.measurement
 station = base.classes.station
-station
+# station
 
 
 # In[9]:
@@ -72,7 +72,7 @@ station
 
 # Create our session (link) from Python to the DB
 session = Session(bind=engine)
-session
+# session
 
 
 # # Exploratory Climate Analysis
@@ -83,7 +83,7 @@ session
 cmd = """SELECT date
 FROM measurement
 """
-print(pd.read_sql(cmd, con=engine))
+# print(pd.read_sql(cmd, con=engine))
 
 
 
@@ -113,7 +113,13 @@ def main():
 # /api/v1.0/precipitation
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-	one_year_ago_query = session.query(measurement).filter(measurement.date >= one_year_ago,  measurement.date <= last_date)return "Convert the query results to a dictionary using date as the key and prcp as the value"
+        last_date = session.query(func.max(measurement.date)).first()[0]
+        date_time_obj = dt.datetime.strptime(last_date, '%Y-%m-%d')
+        one_year_ago = date_time_obj - timedelta(days=365)
+        one_year_ago_query = session.query(measurement.date, measurement.prcp).filter(measurement.date >= one_year_ago,  measurement.date <= last_date).all()
+        precip = list(np.ravel(one_year_ago_query))
+        
+        return jsonify(precip=precip)
 # Convert the query results to a dictionary using date as the key and prcp as the value.
 # Return the JSON representation of your dictionary.
         
@@ -131,10 +137,10 @@ def tobs():
     # """These are the dates and temperature observations of the most active station for the last year of data
     # JSON list of temperature observations (TOBS) for the previous year"""
 # most_active_last12_1 = 
-        last_date = session.query(func.max(measurement.date)).first()[0]
-        date_time_obj = dt.datetime.strptime(last_date, '%Y-%m-%d')
-        one_year_ago = date_time_obj - timedelta(days=365)
-        most_active_last12 = session.query(measurement.tobs, measurement.date).filter(measurement.station == 'USC00519281').filter(measurement.date >= one_year_ago,  measurement.date <= last_date).all()
+        last_date_tobs = session.query(func.max(measurement.date)).first()[0]
+        date_time_obj_tobs = dt.datetime.strptime(last_date_tobs, '%Y-%m-%d')
+        one_year_ago_tobs = date_time_obj_tobs - timedelta(days=365)
+        most_active_last12 = session.query(measurement.tobs, measurement.date).filter(measurement.station == 'USC00519281').filter(measurement.date >= one_year_ago_tobs,  measurement.date <= last_date_tobs).all()
         # most_active_last12_1_df = pd.DataFrame(most_active_last12, columns=["date", "temp"])
         temps = list(np.ravel(most_active_last12))
         
@@ -171,4 +177,3 @@ def start_end(start,end):
 
 if __name__ == "__main__":
 	app.run(debug=True)
-
