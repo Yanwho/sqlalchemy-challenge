@@ -411,9 +411,14 @@ def tobs():
     # """These are the dates and temperature observations of the most active station for the last year of data
     # JSON list of temperature observations (TOBS) for the previous year"""
 # most_active_last12_1 = 
-        most_active_last12 = session.query(measurement.date, measurement.tobs).filter(measurement.station == 'USC00519281').filter(measurement.date >= one_year_ago,  measurement.date <= last_date)
+        last_date = session.query(func.max(measurement.date)).first()[0]
+        date_time_obj = dt.datetime.strptime(last_date, '%Y-%m-%d')
+        one_year_ago = date_time_obj - timedelta(days=365)
+        most_active_last12 = session.query(measurement.tobs).filter(measurement.station == 'USC00519281').filter(measurement.date >= one_year_ago,  measurement.date <= last_date).all()
         # most_active_last12_1_df = pd.DataFrame(most_active_last12, columns=["date", "temp"])
-        return (most_active_last12_1_df)
+        temps = list(np.ravel(most_active_last12))
+        
+        return jsonify(temps=temps)        
     # )
 # Query the dates and temperature observations of the most active station for the last year of data.
 # Return a JSON list of temperature observations (TOBS) for the previous year.
