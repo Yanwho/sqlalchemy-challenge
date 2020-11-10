@@ -126,9 +126,11 @@ def precipitation():
 # /api/v1.0/stations
 @app.route("/api/v1.0/stations")
 def stations():
-	return "These are the 9 stations"
+	
 # Return a JSON list of stations from the dataset.
-
+        station_count = str(session.query(station).count())
+        
+        return ("There are: " + " " + station_count + " " + "stations.")
 
 # /api/v1.0/tobs
 @app.route("/api/v1.0/tobs")
